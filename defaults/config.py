@@ -1,0 +1,54 @@
+"""
+defaults/config.py — Template configuration for a new conference.
+
+Copy this file to  data/config.py  and edit it there.
+data/ is gitignored, so your column names and settings stay local.
+"""
+
+# ── Column mappings ────────────────────────────────────────────────────────────
+# Set each value to the exact header string in your Google Form CSV.
+# Leave a value as None to use the partial-match fallback below instead.
+
+COLUMNS = {
+    "email":        "Email",
+    "name":         "Name",
+    "institution":  "Institution",
+    "position":     "Position",        # e.g. "Position:", "Career Stage"
+    "research_area": None,             # set if your form has a research field question
+    "why_joining":  None,              # set or rely on partial match below
+}
+
+# Substring searched (case-insensitive) in column headers when COLUMNS[key] is None.
+COLUMN_PARTIAL_MATCH = {
+    "why_joining":  "why",             # adjust to match your form's question wording
+    "research_area": "research",
+}
+
+# ── Reviewer columns ───────────────────────────────────────────────────────────
+# Number of reviewer slots added to the output CSV.
+N_REVIEWERS = 2
+
+# ── Pie chart columns for plot_registrants.py ─────────────────────────────────
+# List of (field_key, plot_title, kind) tuples.
+#   field_key — key from COLUMNS / COLUMN_PARTIAL_MATCH
+#   plot_title — label shown on the chart
+#   kind — "pie"    : one slice per unique answer value
+#           "filled": binary — did the person fill this field in or not
+#
+# Leave empty to skip the pie row entirely.
+PIE_COLUMNS = [
+    # ("expertise",    "Level of Expertise",   "pie"),
+    # ("poster",       "Present a Poster?",     "pie"),
+    # ("why_joining",  "Reason Provided?",      "filled"),
+]
+
+# ── Institution grouping for plots (optional) ──────────────────────────────────
+# If defined, institutions are bucketed into these groups for the bar chart.
+# Each entry is (group_label, [list of case-insensitive substrings]).
+# First match wins; unmatched → "Other".
+# Leave as empty list to show raw institution names (top N) instead.
+INSTITUTION_GROUPS = [
+    # ("Home Institution", ["your university name", "your uni abbrev"]),
+    # ("Partner Schools",  ["school a", "school b"]),
+    # ("International",    ["keyword1", "keyword2"]),
+]
