@@ -42,6 +42,33 @@ PIE_COLUMNS = [
     # ("why_joining",  "Reason Provided?",      "filled"),
 ]
 
+# ── Column reconciliations (optional) ─────────────────────────────────────────
+# Create new derived columns by mapping/bucketing existing column values.
+# Each entry produces one new column in the output CSV and review sheet.
+#
+# source_key    — key from COLUMNS / COLUMN_PARTIAL_MATCH to read from
+# output_name   — name of the new column to add
+# exact_map     — dict: raw value (exact, case-sensitive) → output value;
+#                 applied first
+# keyword_rules — list of (output_value, [keywords]) for values not matched
+#                 by exact_map; case-insensitive substring; first match wins
+# default       — value when nothing matches (omit to keep the raw value)
+COLUMN_RECONCILIATIONS = [
+    # {
+    #     "source_key":  "position",
+    #     "output_name": "Career Stage",
+    #     "exact_map": {
+    #         "Exact Dropdown Value 1": "Canonical Label A",
+    #         "Exact Dropdown Value 2": "Canonical Label B",
+    #     },
+    #     "keyword_rules": [
+    #         ("Canonical Label A", ["keyword1", "keyword2"]),
+    #         ("Canonical Label B", ["keyword3"]),
+    #     ],
+    #     "default": "Other",
+    # },
+]
+
 # ── Institution grouping for plots (optional) ──────────────────────────────────
 # If defined, institutions are bucketed into these groups for the bar chart.
 # Each entry is (group_label, [list of case-insensitive substrings]).

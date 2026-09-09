@@ -80,25 +80,36 @@ def categorize_institution(name, groups):
     return "Other"
 
 
-# ── Load & deduplicate ────────────────────────────────────────────────────────
+# ── Load data ─────────────────────────────────────────────────────────────────
+# Prefer the processed review_sheet (has Career Stage + Tier) over raw CSV.
 
-csv_files = sorted(f for f in os.listdir(RAW_DIR) if f.endswith(".csv"))
-if not csv_files:
-    print("ERROR: No CSV found in data/raw/.")
-    sys.exit(1)
-if len(csv_files) > 1:
-    print(f"WARNING: Multiple CSVs in data/raw/ — using '{csv_files[0]}'.")
+review_sheet_path = os.path.join(OUT_DIR, "review_sheet.csv")
+if os.path.exists(review_sheet_path):
+    df = pd.read_csv(review_sheet_path)
+    # Strip empty reviewer columns from plots — they add no information
+    reviewer_cols = [c for c in df.columns if c.startswith("Reviewer ")]
+    df = df.drop(columns=reviewer_cols, errors="ignore")
+    total_entries = unique_count = len(df)
+    print(f"Loaded {total_entries} registrants from review_sheet.csv")
+else:
+    csv_files = sorted(f for f in os.listdir(RAW_DIR) if f.endswith(".csv"))
+    if not csv_files:
+        print("ERROR: No CSV found in data/raw/ and review_sheet.csv doesn't exist.")
+        print("  → Run sort_registrants.py first, or place raw CSV in data/raw/.")
+        sys.exit(1)
+    if len(csv_files) > 1:
+        print(f"WARNING: Multiple CSVs in data/raw/ — using '{csv_files[0]}'.")
+    df_raw        = pd.read_csv(os.path.join(RAW_DIR, csv_files[0]))
+    total_entries = len(df_raw)
+    email_col     = resolve_column(df_raw, "email") or df_raw.columns[0]
+    df            = df_raw.drop_duplicates(subset=[email_col], keep="last").copy()
+    unique_count  = len(df)
+    print(f"Loaded {total_entries} entries → {unique_count} unique (from raw CSV)")
 
-df_raw        = pd.read_csv(os.path.join(RAW_DIR, csv_files[0]))
-total_entries = len(df_raw)
-email_col     = resolve_column(df_raw, "email") or df_raw.columns[0]
-df            = df_raw.drop_duplicates(subset=[email_col], keep="last").copy()
-unique_count  = len(df)
-print(f"Loaded {total_entries} entries → {unique_count} unique registrants")
-
-position_col   = resolve_column(df, "position")
-institution_col = resolve_column(df, "institution")
-field_col      = resolve_column(df, "research_area")
+# Use reconciled Career Stage if available, otherwise fall back to raw position column
+career_stage_col = "Career Stage" if "Career Stage" in df.columns else resolve_column(df, "position")
+institution_col  = resolve_column(df, "institution")
+field_col        = resolve_column(df, "research_area")
 
 pie_specs = getattr(config, "PIE_COLUMNS", [])
 
@@ -113,16 +124,18 @@ row_ratios = [1, 1.2] if has_pies else [1]
 fig = plt.figure(figsize=(max(20, n_pies * 5), 8 * n_rows))
 gs  = gridspec.GridSpec(n_rows, 5, figure=fig, height_ratios=row_ratios)
 
-# Bar: position breakdown
-ax_bar = fig.add_subplot(gs[0, :4])
-if position_col:
-    counts = df[position_col].fillna("No Entry").value_counts().sort_values(ascending=False)
+# Bar: career stage breakdown
+ax_bar  = fig.add_subplot(gs[0, :4])
+bar_col = career_stage_col
+bar_title = "Registrants by Career Stage" if bar_col == "Career Stage" else "Registrants by Position"
+if bar_col:
+    counts = df[bar_col].fillna("No Entry").value_counts().sort_values(ascending=False)
     counts.plot(kind="bar", ax=ax_bar, color="skyblue", edgecolor="black", rot=45)
     ax_bar.set_xticklabels(ax_bar.get_xticklabels(), ha="right", fontsize=13)
 else:
     ax_bar.text(0.5, 0.5, "Position column not found\n(check COLUMNS in data/config.py)",
                 ha="center", va="center", fontsize=13)
-ax_bar.set_title("Registrants by Position", fontsize=16)
+ax_bar.set_title(bar_title, fontsize=16)
 ax_bar.set_ylabel("Count", fontsize=13)
 ax_bar.tick_params(axis="y", labelsize=12)
 

@@ -7,6 +7,14 @@ data/ is gitignored, so your lists and rules stay local.
 Rules are evaluated in order; the first matching rule wins.
 Registrants that match no rule are assigned Tier III (Normal).
 
+── Tier meanings ──────────────────────────────────────────────────────────────
+
+  Tier I   Whitelisted          — reviewed first, guaranteed consideration
+  Tier II  Preferred            — strong candidates, reviewed before III
+  Tier III Normal               — standard pool (default for unmatched)
+  Tier IV  Late Submission      — submitted after the deadline
+  Tier V   No Poster/Incomplete — did not commit to a poster or left fields blank
+
 ── Available match types ──────────────────────────────────────────────────────
 
   email_list          emails: [...]
@@ -21,64 +29,69 @@ Registrants that match no rule are assigned Tier III (Normal).
                       Matches if the registrant's name appears in the file.
 
   institution_contains  value: "substring"
-                      Matches if the registrant's institution name (case-insensitive)
-                      contains the given substring.
+                      Matches if the registrant's institution (case-insensitive)
+                      contains the substring.
 
   field_empty         field_key: "why_joining"
-                      Matches if the given field (key from COLUMNS) is blank.
-                      Useful for flagging incomplete submissions as Tier IV.
+                      Matches if the field (key from COLUMNS/COLUMN_PARTIAL_MATCH)
+                      is blank or missing.
+
+  field_contains      field_key: "poster?"   value: "No"
+                      Matches if the field value contains the given substring
+                      (case-insensitive). Useful for checking specific answers.
+
+  timestamp_after     timestamp_key: "timestamp"   date: "YYYY-MM-DD"
+                      Matches if the submission timestamp is after the given date.
+                      Requires "timestamp" (or the given key) in COLUMNS.
 """
 
 TIER_RULES = [
-    # ── Tier I: Whitelisted ────────────────────────────────────────────────────
-    # Guaranteed acceptance. Examples:
+
+    # ── Tier I: Whitelisted ───────────────────────────────────────────────────
     # {
-    #     "tier": "I",
-    #     "match": "email_list",
-    #     "emails": [
-    #         "vip@institution.edu",
+    #     "tier":  "I",
+    #     "match": "name_list",
+    #     "names": [
+    #         "Jane Doe",
     #     ],
     # },
     # {
-    #     "tier": "I",
+    #     "tier":  "I",
     #     "match": "name_csv",
     #     "csv_path": "data/special/vip_list.csv",   # first_name, last_name columns
     # },
-    # {
-    #     "tier": "I",
-    #     "match": "institution_contains",
-    #     "value": "home university name",
-    # },
 
-    # ── Tier II: Preferred ─────────────────────────────────────────────────────
-    # Strong candidates, reviewed before Tier III.
+    # ── Tier II: Preferred ────────────────────────────────────────────────────
     # {
-    #     "tier": "II",
+    #     "tier":  "II",
     #     "match": "institution_contains",
     #     "value": "partner school",
     # },
     # {
-    #     "tier": "II",
+    #     "tier":  "II",
     #     "match": "name_list",
-    #     "names": [
-    #         "Jane Doe",
-    #         "John Smith",
-    #     ],
+    #     "names": ["Jane Doe", "John Smith"],
     # },
 
-    # ── Tier IV: Blacklisted / Incomplete ─────────────────────────────────────
-    # Placed at the bottom of the review sheet.
-    # Flag registrants who left the motivation field blank:
+    # ── Tier IV: Late submission ──────────────────────────────────────────────
     # {
-    #     "tier": "IV",
-    #     "match": "field_empty",
+    #     "tier":          "IV",
+    #     "match":         "timestamp_after",
+    #     "timestamp_key": "timestamp",
+    #     "date":          "2025-08-28",
+    # },
+
+    # ── Tier V: No poster / incomplete ───────────────────────────────────────
+    # {
+    #     "tier":      "V",
+    #     "match":     "field_contains",
+    #     "field_key": "poster?",
+    #     "value":     "No",
+    # },
+    # {
+    #     "tier":      "V",
+    #     "match":     "field_empty",
     #     "field_key": "why_joining",
     # },
-    # {
-    #     "tier": "IV",
-    #     "match": "email_list",
-    #     "emails": [
-    #         "known_spammer@domain.com",
-    #     ],
-    # },
+
 ]

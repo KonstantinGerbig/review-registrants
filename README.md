@@ -46,6 +46,10 @@ cp defaults/tier_rules.py data/tier_rules.py
 Export from Google Sheets → File → Download → CSV. Place the file in `data/raw/`.
 The scripts auto-detect any `.csv` file there.
 
+If a person submitted the form multiple times (e.g. to correct an answer), only their
+**last** submission is kept — Google Forms appends rows chronologically, so `keep="last"`
+on the email column always retains the most recent entry.
+
 ### 4. Edit `data/config.py`
 - **`COLUMNS`** — paste the exact header strings from your CSV for `email`, `name`, `institution`, `position`. For long question headers, leave the entry `None` and check that `COLUMN_PARTIAL_MATCH` has a substring that matches.
 - **`N_REVIEWERS`** — number of reviewer slots (default 2).
