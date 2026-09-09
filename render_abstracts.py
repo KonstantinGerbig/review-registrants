@@ -37,13 +37,7 @@ if not os.path.exists(sheet_path):
 
 df = pd.read_csv(sheet_path)
 
-TIER_LABELS = {
-    "I":   "Tier I — Whitelisted",
-    "II":  "Tier II — Preferred",
-    "III": "Tier III — Normal",
-    "IV":  "Tier IV — Blacklisted / Incomplete",
-}
-TIER_ORDER = ["I", "II", "III", "IV"]
+TIER_ORDER = ["I", "II", "III", "IV", "V"]
 
 # Columns to skip in the rendered output
 reviewer_cols = {c for c in df.columns if c.startswith("Reviewer ")}
@@ -81,8 +75,7 @@ for tier in TIER_ORDER:
     if tier_df.empty:
         continue
 
-    label = TIER_LABELS.get(tier, f"Tier {tier}")
-    lines.append(f"---\n\n## {label}  ({len(tier_df)} registrants)\n")
+    lines.append(f"---\n\n## Tier {tier}  ({len(tier_df)} registrants)\n")
 
     for _, row in tier_df.iterrows():
         app_num  = row.get("Applicant #", "?")
