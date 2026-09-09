@@ -266,17 +266,46 @@ print(f"\nSaved: {summary_path}")
 
 # ── Export CSV ────────────────────────────────────────────────────────────────
 
-# Column order: Applicant #, Tier, Name, Email, then rest of form, then reviewer cols
-name_col = col_map.get("name", "")
-front_cols = ["Applicant #", "Tier"] + reconciled_cols
-if name_col:
-    front_cols.append(name_col)
-if email_col not in front_cols:
-    front_cols.append(email_col)
-
+name_col     = col_map.get("name", "")
 internal_cols = {c for c in df.columns if c.startswith("__")}
-remaining = [c for c in df.columns if c not in front_cols and c not in reviewer_cols and c not in internal_cols]
-export_cols = front_cols + remaining + reviewer_cols
+
+OUTPUT_COLUMNS_CFG = getattr(config, "OUTPUT_COLUMNS", None)
+
+if OUTPUT_COLUMNS_CFG:
+    # Add empty placeholder columns referenced by special tokens
+    if "__decision__"      in OUTPUT_COLUMNS_CFG: df.insert(0, "Decision",      "")
+    if "__average_score__" in OUTPUT_COLUMNS_CFG: df.insert(0, "Average Score", "")
+
+    placed, export_cols = set(), []
+    for token in OUTPUT_COLUMNS_CFG:
+        if token == "__decision__":
+            export_cols.append("Decision");      placed.add("Decision")
+        elif token == "__average_score__":
+            export_cols.append("Average Score"); placed.add("Average Score")
+        elif token == "__applicant_num__":
+            export_cols.append("Applicant #");   placed.add("Applicant #")
+        elif token == "__tier__":
+            export_cols.append("Tier");          placed.add("Tier")
+        elif token == "__reviewers__":
+            export_cols.extend(c for c in reviewer_cols if c not in placed)
+            placed.update(reviewer_cols)
+        elif token == "__remaining__":
+            rest = [c for c in df.columns if c not in placed and c not in internal_cols]
+            export_cols.extend(rest); placed.update(rest)
+        else:
+            # Resolve as a COLUMNS key first, then as a literal column header
+            actual = col_map.get(token) or (token if token in df.columns else None)
+            if actual and actual not in placed:
+                export_cols.append(actual); placed.add(actual)
+            elif not actual:
+                print(f"WARNING: OUTPUT_COLUMNS entry '{token}' not found — skipping.")
+else:
+    # Default order when OUTPUT_COLUMNS is not set
+    front_cols = ["Applicant #", "Tier"] + reconciled_cols
+    if name_col:       front_cols.append(name_col)
+    if email_col not in front_cols: front_cols.append(email_col)
+    remaining   = [c for c in df.columns if c not in front_cols and c not in reviewer_cols and c not in internal_cols]
+    export_cols = front_cols + remaining + reviewer_cols
 
 csv_out = os.path.join(OUT_DIR, "review_sheet.csv")
 df[export_cols].to_csv(csv_out, index=False)

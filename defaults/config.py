@@ -69,6 +69,31 @@ COLUMN_RECONCILIATIONS = [
     # },
 ]
 
+# ── Output column order ───────────────────────────────────────────────────────
+# Controls the column order in review_sheet.csv.
+# Omit this entirely to use the default order.
+#
+# Special tokens:
+#   __decision__      — empty "Decision" column (accept / waitlist / reject)
+#   __average_score__ — empty "Average Score" column
+#   __applicant_num__ — "Applicant #"
+#   __tier__          — "Tier"
+#   __reviewers__     — all reviewer columns (N_REVIEWERS × Name / Grade / Notes)
+#   __remaining__     — every column not yet placed, in original form order
+#
+# Any key from COLUMNS / COLUMN_PARTIAL_MATCH, or an exact column header string,
+# can also be placed by name (e.g. "name", "funding?").
+#
+# OUTPUT_COLUMNS = [
+#     "__decision__",
+#     "__average_score__",
+#     "__applicant_num__",
+#     "name",
+#     "funding?",
+#     "__reviewers__",
+#     "__remaining__",
+# ]
+
 # ── Institution grouping for plots (optional) ──────────────────────────────────
 # If defined, institutions are bucketed into these groups for the bar chart.
 # Each entry is (group_label, [list of case-insensitive substrings]).
