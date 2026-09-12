@@ -7,13 +7,20 @@ data/ is gitignored, so your lists and rules stay local.
 Rules are evaluated in order; the first matching rule wins.
 Registrants that match no rule are assigned Tier III (Normal).
 
+── Recommended ordering ───────────────────────────────────────────────────────
+
+  Put Tier V (incomplete) rules FIRST.  Because first-match wins, this ensures
+  submissions with missing required fields are always marked incomplete —
+  even if the person would otherwise qualify for Tier I or II.  Add all other
+  rules after the completeness checks.
+
 ── Tier meanings ──────────────────────────────────────────────────────────────
 
   Tier I   Whitelisted          — reviewed first, guaranteed consideration
   Tier II  Preferred            — strong candidates, reviewed before III
   Tier III Normal               — standard pool (default for unmatched)
   Tier IV  Late Submission      — submitted after the deadline
-  Tier V   No Poster/Incomplete — did not commit to a poster or left fields blank
+  Tier V   Incomplete           — missing required fields or opted out
 
 ── Available match types ──────────────────────────────────────────────────────
 
@@ -32,7 +39,7 @@ Registrants that match no rule are assigned Tier III (Normal).
                       Matches if the registrant's institution (case-insensitive)
                       contains the substring.
 
-  field_empty         field_key: "why_joining"
+  field_empty         field_key: "abstract"
                       Matches if the field (key from COLUMNS/COLUMN_PARTIAL_MATCH)
                       is blank or missing.
 
@@ -46,6 +53,25 @@ Registrants that match no rule are assigned Tier III (Normal).
 """
 
 TIER_RULES = [
+
+    # ── Tier V: Incomplete — evaluated FIRST ─────────────────────────────────
+    # Place all completeness/eligibility checks here so they override any
+    # higher-tier rule that would otherwise match the same person.
+    #
+    # Missing required field (e.g. abstract):
+    # {
+    #     "tier":      "V",
+    #     "match":     "field_empty",
+    #     "field_key": "abstract",        # key from COLUMNS / COLUMN_PARTIAL_MATCH
+    # },
+    #
+    # Opted out of required component (e.g. poster):
+    # {
+    #     "tier":      "V",
+    #     "match":     "field_contains",
+    #     "field_key": "poster?",
+    #     "value":     "No",
+    # },
 
     # ── Tier I: Whitelisted ───────────────────────────────────────────────────
     # {
@@ -79,19 +105,6 @@ TIER_RULES = [
     #     "match":         "timestamp_after",
     #     "timestamp_key": "timestamp",
     #     "date":          "2025-08-28",
-    # },
-
-    # ── Tier V: No poster / incomplete ───────────────────────────────────────
-    # {
-    #     "tier":      "V",
-    #     "match":     "field_contains",
-    #     "field_key": "poster?",
-    #     "value":     "No",
-    # },
-    # {
-    #     "tier":      "V",
-    #     "match":     "field_empty",
-    #     "field_key": "why_joining",
     # },
 
 ]
